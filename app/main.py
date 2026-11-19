@@ -1,6 +1,7 @@
 """API de exemplo (FastAPI) usada apenas para exercitar a esteira DevSecOps."""
 import hmac
 import os
+from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Security
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,7 +9,11 @@ from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 
 # A chave vem do ambiente (nunca hardcoded). Sem ela, a API nega tudo.
-API_KEY = os.environ.get("API_KEY", "")
+# Em Kubernetes o segredo e montado como arquivo (API_KEY_FILE), nao como variavel.
+_key_file = os.environ.get("API_KEY_FILE")
+API_KEY = (
+    Path(_key_file).read_text().strip() if _key_file else os.environ.get("API_KEY", "")
+)
 ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 
 app = FastAPI(title="DevSecOps Demo API", version="1.0.0")
