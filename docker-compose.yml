@@ -1,0 +1,19 @@
+services:
+  api:
+    build: .
+    image: devsecops-api:1.0.0
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      API_KEY: ${API_KEY:?defina API_KEY no ambiente}
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 256m
+    pids_limit: 100
+    restart: unless-stopped

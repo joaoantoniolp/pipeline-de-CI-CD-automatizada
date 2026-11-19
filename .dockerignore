@@ -1,0 +1,7 @@
+.git
+.github
+demo
+tests
+k8s
+.zap
+*.md
