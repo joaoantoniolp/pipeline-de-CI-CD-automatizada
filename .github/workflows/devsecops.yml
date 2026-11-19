@@ -47,14 +47,9 @@ jobs:
           output-file: sbom.cdx.json
           artifact-name: sbom.cdx.json
       - name: SCA - CVEs nas dependencias (security gate HIGH/CRITICAL)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: fs
-          scan-ref: .
-          scanners: vuln
-          severity: HIGH,CRITICAL
-          exit-code: "1"
-          ignore-unfixed: true
+        run: |
+          docker run --rm -v "$PWD":/work -w /work ghcr.io/aquasecurity/trivy:latest \
+            fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --ignore-unfixed .
 
   # 4) Docker + IaC
   iac-docker:
@@ -75,12 +70,9 @@ jobs:
           skip_check: CKV_K8S_43   # exige digest da imagem; fora do escopo
           soft_fail: false
       - name: Trivy config (Dockerfile, Compose, K8s)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: config
-          scan-ref: .
-          severity: HIGH,CRITICAL
-          exit-code: "1"
+        run: |
+          docker run --rm -v "$PWD":/work -w /work ghcr.io/aquasecurity/trivy:latest \
+            config --severity HIGH,CRITICAL --exit-code 1 .
 
   # 5) Build + scan da imagem + DAST (so roda se os gates anteriores passarem)
   build-dast:
@@ -92,12 +84,9 @@ jobs:
       - name: Build da imagem
         run: docker build -t devsecops-api:ci .
       - name: Scan da imagem (security gate HIGH/CRITICAL)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: devsecops-api:ci
-          severity: HIGH,CRITICAL
-          exit-code: "1"
-          ignore-unfixed: true
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/aquasecurity/trivy:latest \
+            image --severity HIGH,CRITICAL --exit-code 1 --ignore-unfixed devsecops-api:ci
       - name: Subir container de staging
         run: |
           docker run -d --name api -p 8000:8000 -e API_KEY="$(openssl rand -hex 16)" devsecops-api:ci
