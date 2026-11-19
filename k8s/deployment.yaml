@@ -29,9 +29,8 @@ spec:
           ports:
             - containerPort: 8000
           env:
-            - name: API_KEY
-              valueFrom:
-                secretKeyRef: {name: api-secret, key: api-key}
+            - name: API_KEY_FILE
+              value: /secrets/api-key
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
@@ -45,9 +44,15 @@ spec:
             httpGet: {path: /health, port: 8000}
           volumeMounts:
             - {name: tmp, mountPath: /tmp}
+            - {name: api-secret, mountPath: /secrets, readOnly: true}
       volumes:
         - name: tmp
           emptyDir: {}
+        - name: api-secret
+          secret:
+            secretName: api-secret
+            items:
+              - {key: api-key, path: api-key}
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
