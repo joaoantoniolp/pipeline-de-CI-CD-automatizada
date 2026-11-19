@@ -15,9 +15,9 @@ jobs:
     name: 1 - Secret Scanning (Gitleaks)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with: {fetch-depth: 0}
-      - uses: gitleaks/gitleaks-action@v2
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     container: {image: semgrep/semgrep:latest}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Semgrep (security gate)
         run: >
           semgrep scan --config p/python --config p/owasp-top-ten
@@ -38,9 +38,9 @@ jobs:
     name: 3 - SCA e SBOM (Trivy + Syft)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Gerar SBOM CycloneDX (Syft)
-        uses: anchore/sbom-action@v0
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
           path: .
           format: cyclonedx-json
@@ -56,14 +56,14 @@ jobs:
     name: 4 - Dockerfile e IaC (Hadolint, Checkov, Trivy config)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Hadolint (Dockerfile)
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@54c9adbab1582c2ef04b2016b760714a4bfde3cf # v3.1.0
         with:
           dockerfile: Dockerfile
           failure-threshold: warning
       - name: Checkov (Dockerfile + Kubernetes)
-        uses: bridgecrewio/checkov-action@v12
+        uses: bridgecrewio/checkov-action@b17b606d6ec72bb8ba5721ad5b7e340b80a9fc39 # v12
         with:
           directory: .
           framework: dockerfile,kubernetes
@@ -80,7 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [secrets, sast, sca-sbom, iac-docker]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Build da imagem
         run: docker build -t devsecops-api:ci .
       - name: Scan da imagem (security gate HIGH/CRITICAL)
@@ -92,7 +92,7 @@ jobs:
           docker run -d --name api -p 8000:8000 -e API_KEY="$(openssl rand -hex 16)" devsecops-api:ci
           for i in $(seq 1 20); do curl -sf http://localhost:8000/health && break || sleep 2; done
       - name: DAST - OWASP ZAP API scan
-        uses: zaproxy/action-api-scan@v0.9.0
+        uses: zaproxy/action-api-scan@77dfa9a647bb0f583e39d4df8531634d6ddd8df4 # v0.9.0
         with:
           target: http://localhost:8000/openapi.json
           format: openapi
